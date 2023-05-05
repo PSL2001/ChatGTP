@@ -1,5 +1,28 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  // Un contenedor que engloba al chat
+  #chat
+    h1= message
+    // Un contenedor para los mensajes
+    #messages
+    // Un contenedor para el formulario
+    #form
+      // El formulario
+      form(action='', onsubmit='return false;')
+        //Un span para los mensajes del usuario y la API. Solo queremos enseñar esto si tenemos un mensaje
+        if mensaje
+          span#user-message  #{mensaje}
+        else 
+          span#no-user-message Prueba a escribir algo!
+        // El input para el mensaje
+        input#msg(autocomplete='off')
+        // El boton para enviar el mensaje
+        button#btnEnviar Enviar
+        // Añadimos un contenedor para mensajes de la API
+        #api-messages
+        //Un input desactivado para mostrar los mensajes de esta API
+        input#api-message(disabled, value='Imaginemos que este es un mensaje de la API')
+    
+    script#script(src="/javascripts/cliente.js").
+      console.log(document.getElementById('script').src)
