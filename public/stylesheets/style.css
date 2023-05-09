@@ -66,6 +66,12 @@ button:hover {
     background-color: #5f5f5f;
 }
 
+/** Para las imagenes de los resultados. Las redondeamos y les damos un poco de margen */
+#results img {
+    border-radius: 3px;
+    margin: 10px;
+}
+
 /* Para el contenedor de los resultados */
 #results {
     margin: 20px auto;

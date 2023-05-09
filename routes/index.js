@@ -51,27 +51,6 @@ router.post('/send-message', function (req, res, next) {
       // Devolvemos el error al cliente
       reject(err);
     });
-
-  //   // Esperamos a que se resuelva la promesa
-  //   mensaje.then((res) => {
-  //     // Comprobamos que es una respuesta valida
-  //     if (res) {
-  //       // Comprobamos que se ha podido procesar la respuesta
-  //       if (res?.choices?.text) {
-  //         // Devolvemos la respuesta al cliente
-  //         resolve({ msg: res.choices.text });
-  //       } else {
-  //         // Devolvemos el error al cliente
-  //         reject(`No se ha podido procesar la respuesta, intentalo mas tarde ${res.statusText} `);
-  //       }
-  //     } else {
-  //       // Devolvemos el error al cliente
-  //       reject('No se ha podido recibir la respuesta');
-  //     }
-  //   }).catch((err) => {
-  //     // Devolvemos el error al cliente
-  //     reject(err);
-  //   });
  });
 
 
