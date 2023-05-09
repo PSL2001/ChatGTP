@@ -4,17 +4,15 @@ block content
   // Un contenedor que engloba al chat
   #chat
     h1= message
+    br
     // Un contenedor para los mensajes
     #messages
     // Un contenedor para el formulario
     #form
       // El formulario
-      form(action='', onsubmit='return false;')
+      form(action='', onsubmit='return false;', method='POST')
         //Un span para los mensajes del usuario y la API. Solo queremos enseñar esto si tenemos un mensaje
-        if mensaje
-          span#user-message  #{mensaje}
-        else 
-          span#no-user-message Prueba a escribir algo!
+        //span#user-message
         // El input para el mensaje
         input#msg(autocomplete='off')
         // El boton para enviar el mensaje
@@ -22,7 +20,7 @@ block content
         // Añadimos un contenedor para mensajes de la API
         #api-messages
         //Un input desactivado para mostrar los mensajes de esta API
-        input#api-message(disabled, value='Imaginemos que este es un mensaje de la API')
+        input#api-message(disabled)
     
     script#script(src="/javascripts/cliente.js").
       console.log(document.getElementById('script').src)
