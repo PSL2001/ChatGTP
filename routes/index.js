@@ -64,5 +64,44 @@ router.post('/send-message', function (req, res, next) {
   });
 });
 
+/**
+ * Funcion para recibir una imagen de la API de OpenAI, procesarla y devolver la respuesta
+ * @param json request del usuario con la imagen
+ * @returns json respuesta de la API, la cual contiene una url con la imagen procesada o un error
+ * @throws error si no se ha podido enviar la imagen
+ * @throws error si no se ha podido recibir la respuesta
+ * @throws error si no se ha podido procesar la respuesta
+ */
+router.post('/send-image', function (req, res, next) {
+  // Obtenemos la request de la imagen del usuario
+  console.log(req.body);
+  // Pedimos una respuesta a la API de OpenAI
+  const response = new Promise((resolve, reject) => {
+    let imagen = api.createImage({
+      prompt: req.body.prompt,
+      n: req.body.n,
+      size: req.body.size,
+    }).then((res) => {
+      // Devolvemos la respuesta al cliente
+      resolve(res);
+    }).catch((err) => {
+      // Devolvemos el error al cliente
+      reject(err);
+    });
+  });
+
+  // Esperamos a que se resuelva la promesa y enviamos la respuesta al cliente
+  response.then((result) => {
+    console.log(result.data.url);
+    res.json(result.data.url);
+  }).catch((err) => {
+    console.log(err);
+    res.json({ err: err });
+  });
+});
+
+  
+
+
 
 module.exports = router;
