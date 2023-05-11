@@ -54,8 +54,6 @@ async function enviarMensaje() {
             enviarTexto(data);
         }
     }
-    // Desbloqueamos el input y el boton
-    disableUserInput(false);
 }
 
 // Funcion para crear un span con el mensaje
@@ -79,26 +77,30 @@ function crearSpan(msg) {
 }
 
 // Funcion para crear una imagen
-function crearImagen(url) {
-    // Creamos un elemento img
-    let img = document.createElement('img');
-    // Le ponemos el src
-    img.src = url;
-    // Añadimos la imagen al contenedor
-    document.getElementById('form').before(img);
-    // Creamos un salto de linea
-    let br = document.createElement('br');
-    // Lo añadimos al div de mensajes
-    document.getElementById('form').before(br);
-    // Ponemos el scroll abajo del todo
-    document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
+function crearImagen(images) {
+    // No sabemos cuantas imagenes nos va a devolver la API, por lo que vamos a mappear el array de urls
+    // y vamos a crear una imagen por cada url
+    images.map(image => {
+        // Creamos un elemento img
+        let img = document.createElement('img');
+        // Le ponemos el src
+        img.src = image.url;
+        // Añadimos la imagen al contenedor
+        document.getElementById('form').before(img);
+        // Creamos un salto de linea
+        let br = document.createElement('br');
+        // Lo añadimos al div de mensajes
+        document.getElementById('form').before(br);
+        // Ponemos el scroll abajo del todo
+        document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
+    });
     //Limpiamos el input
     input.value = '';
-}    
+}
 
 
 // Funcion para enviar una imagen
-async function enviarImagen(data) {
+function enviarImagen(data) {
     /**
     * Antes de poder mandar la peticion a la API de OpenAI, necesitamos 3 parametros:
     * 1. La peticion de imagen (que tenemos en la variable request)
@@ -123,31 +125,42 @@ async function enviarImagen(data) {
     let request = {
         "prompt": data.msg,
         "n": num != undefined ? parseInt(num) : 1,
-        "size": size != undefined ? size + "x" + size : 1024 + "x" + 1024
+        "size": size != undefined ? size + "x" + size : 512 + "x" + 512
     }
     console.log(request);
     // Llamamos al metodo del servidor para enviar el mensaje
-    let res = await fetch('/send-image', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(request),
-    }).then(res => res.json())
+    let res = new Promise((resolve, reject) => {
+        fetch('/send-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request),
+        })
+            .then(res => resolve(res))
+            .catch(err => reject(err));
+    });
+    // Esperamos a que se resuelva la promesa
+    res.then(res => res.json())
         .then(data => {
             console.log(data);
             // Comprobamos que se ha recibido la respuesta
             if (data) {
-                // Creamos el elemento para mostrar el mensaje
+                // Creamos la imagen
                 crearImagen(data);
+                // Desbloqueamos el input y el boton
+                disableUserInput(false);
             } else {
                 // Llamamos a la funcion para mostrar el error
                 mostrarError('No se ha podido procesar la respuesta');
+                // Desbloqueamos el input y el boton
+                disableUserInput(false);
             }
-        })
-        .catch(err => {
+        }).catch(err => {
             // Llamamos a la funcion para mostrar el error
-            mostrarError('No se ha podido enviar el mensaje');
+            mostrarError('No se ha podido enviar el mensaje ' + err);
+            // Desbloqueamos el input y el boton
+            disableUserInput(false);
         });
 }
 
@@ -166,14 +179,20 @@ async function enviarTexto(data) {
             // Comprobamos que se ha recibido la respuesta
             if (data) {
                 crearSpan("<b>IA: </b>" + data);
+                // Desbloqueamos el input y el boton
+                disableUserInput(false);
             } else {
                 // Llamamos a la funcion para mostrar el error
                 mostrarError('No se ha podido procesar la respuesta');
+                // Desbloqueamos el input y el boton
+                disableUserInput(false);
             }
         })
         .catch(err => {
             // Llamamos a la funcion para mostrar el error
-            mostrarError('No se ha podido enviar el mensaje');
+            mostrarError('No se ha podido enviar el mensaje ' + err);
+            // Desbloqueamos el input y el boton
+            disableUserInput(false);
         });
 }
 
@@ -226,7 +245,7 @@ function getNumber(msg) {
 // Funcion para detectar si el usuario ha puesto un tamaño en el mensaje
 function getSize(msg) {
     // Definimos un valor por defecto para el tamaño
-    let size = 1024;
+    let size = 512;
 
     // Creamos un array con las palabras del mensaje
     let palabras = msg.split(' ');
@@ -239,7 +258,7 @@ function getSize(msg) {
     size = palabras.reduce((acc, palabra) => {
         // Comprobamos si la palabra es igual a alguna palabra del array de tamanos
         if (tamanos.includes(palabra)) {
-            // Si es igual, guardamos el tamaño, teniendo en cuenta que el tamaño pequeño es 256, el mediano 512 y el grande 1024
+            // Si es igual, guardamos el tamaño, teniendo en cuenta que el tamaño pequeño es 256, el mediano 512 y el grande 1024 (grandes por el momento no se usa)
             switch (palabra) {
                 case 'pequeño': case 'pequeña': case 'pequeños': case 'pequeñas':
                     acc = 256;
@@ -248,7 +267,7 @@ function getSize(msg) {
                     acc = 512;
                     break;
                 case 'grande': case 'grandes':
-                    acc = 1024;
+                    acc = 512;
                     break;
             }
         }

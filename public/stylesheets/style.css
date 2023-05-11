@@ -68,8 +68,13 @@ button:hover {
 
 /** Para las imagenes de los resultados. Las redondeamos y les damos un poco de margen */
 #results img {
+    display: inline-block;
     border-radius: 3px;
     margin: 10px;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.3);
+    align-items: center;
 }
 
 /* Para el contenedor de los resultados */
@@ -101,7 +106,7 @@ button:hover {
 }
 
 /* Para la etiqueta span de chat que contiene el contenido del mensaje */
-#chat span#user-message, span#no-user-message {
+#chat span#user-message{
     display: inline-block;
     margin-bottom: 10px;
     padding: 10px 15px;

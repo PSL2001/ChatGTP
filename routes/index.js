@@ -92,8 +92,8 @@ router.post('/send-image', function (req, res, next) {
 
   // Esperamos a que se resuelva la promesa y enviamos la respuesta al cliente
   response.then((result) => {
-    console.log(result.data.url);
-    res.json(result.data.url);
+    console.log(result.data.data);
+    res.json(result.data.data);
   }).catch((err) => {
     console.log(err);
     res.json({ err: err });
