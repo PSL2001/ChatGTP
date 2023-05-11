@@ -5,10 +5,6 @@
  * Muestra los mensajes que vengan tanto del usuario principal como el de la API
  */
 
-
-
-
-
 // Variables globales
 var button = document.getElementById('btnEnviar');
 var input = document.getElementById('msg');
@@ -76,7 +72,11 @@ function crearSpan(msg) {
     input.value = '';
 }
 
-// Funcion para crear una imagen
+/**
+ * Funcion para crear una etiqueta img con la imagen
+ * @param {*} images 
+ * @returns Nada, pero crea una serie de imagenes en el DOM, dependiendo de la cantidad que haya pedido el usuario
+ */
 function crearImagen(images) {
     // No sabemos cuantas imagenes nos va a devolver la API, por lo que vamos a mappear el array de urls
     // y vamos a crear una imagen por cada url
@@ -99,9 +99,8 @@ function crearImagen(images) {
 }
 
 
-// Funcion para enviar una imagen
-function enviarImagen(data) {
-    /**
+/**
+    * Funcion para enviar una imagen 
     * Antes de poder mandar la peticion a la API de OpenAI, necesitamos 3 parametros:
     * 1. La peticion de imagen (que tenemos en la variable request)
     * 2. La cantidad de imagenes que queremos que nos devuelva la API (el cual es opcional, pero el usuario podría pedir mas de 1 que es el valor por defecto)
@@ -110,12 +109,16 @@ function enviarImagen(data) {
     *  o grande (1024). Por defecto, la API devuelve imagenes de tamaño grande.
     * 
     * Toda esta informacion debería estar en la request del usuario, pero por si acaso, vamos a poner valores por defecto.
-    */
-    // Primero comprobamos en data.msg si el usuario ha pedido mas de una imagen
-    // Nos puede pedir mas de una imagen si ha puesto algo como "quiero 3 imagenes de un perro". Esto tambien se aplica para la palabra "tres" y asi con todos los numeros
-    // hasta 10. Por eso, vamos a comprobar si el usuario ha puesto un numero del 1 al 10
-    // Para ello, vamos a crear una funcion que compruebe si el usuario ha puesto un numero
-    // y si es asi, lo devuelve
+    * Primero comprobamos en data.msg si el usuario ha pedido mas de una imagen
+    * Nos puede pedir mas de una imagen si ha puesto algo como "quiero 3 imagenes de un perro". Esto tambien se aplica para la palabra "tres" y asi con todos los numeros
+    * hasta 10. Por eso, vamos a comprobar si el usuario ha puesto un numero del 1 al 10
+    * Para ello, vamos a crear una funcion que compruebe si el usuario ha puesto un numero
+    * y si es asi, lo devuelve
+    * 
+    * @param {*} data
+    * @returns Nada pero envia una peticion al servidor para que este la envie a la API de OpenAI y nos devuelva una serie de imagenes
+*/
+function enviarImagen(data) {
     let num = getNumber(data.msg);
     // Ahora debemos comprobar si el usuario ha pedido un tamaño de imagen
     // Para ello, vamos a crear una funcion que compruebe si el usuario ha puesto un tamaño
@@ -164,7 +167,11 @@ function enviarImagen(data) {
         });
 }
 
-// Funcion para enviar un mensaje de texto
+/**
+ * Funcion para enviar una cadena de texto
+ * Usando la API de OpenAI, podemos enviar una cadena de texto y que nos devuelva una respuesta, tambien en forma de texto
+ * @param {*} data 
+ */
 async function enviarTexto(data) {
     // Llamamos al metodo del servidor para enviar el mensaje
     let res = await fetch('/send-message', {
@@ -196,7 +203,10 @@ async function enviarTexto(data) {
         });
 }
 
-// Funcion para bloquear el input y el boton o desbloquearlos
+/**
+ * Funcion para desactivar el input y el boton o activarlos
+ * @param {boolean} disable 
+ */
 function disableUserInput(disable) {
     // Comprobamos si hay que bloquear o desbloquear
     if (disable) {
@@ -212,7 +222,10 @@ function disableUserInput(disable) {
     }
 }
 
-// Funcion para mostrar un error en el input de errores
+/**
+ * Función para mostrar un error de la API en inputError
+ * @param {*} msg 
+ */
 function mostrarError(msg) {
     // Ponemos el mensaje
     inputError.value = msg;
@@ -220,7 +233,11 @@ function mostrarError(msg) {
     inputError.style.color = 'red';
 }
 
-// Funcion para detectar si el usuario ha puesto un numero en el mensaje
+/**
+ * Funcion para devolver una cantidad de imagenes, basandose en el input del usuario
+ * @param {*} msg 
+ * @returns un numero del 1 al 10
+ */
 function getNumber(msg) {
     // Primero creamos un array que tenga los numeros del 1 al 10, tanto en numero como en letras, teniendo en cuenta además que el usuario puede poner "una", "un" o "unos"
     // Primero revisamos si el usuario ha escrito un numero tanto en letras como en numero o si ha escrito "unos" o "unas"
@@ -244,7 +261,7 @@ function getNumber(msg) {
 
 // Funcion para detectar si el usuario ha puesto un tamaño en el mensaje
 function getSize(msg) {
-    // Definimos un valor por defecto para el tamaño
+    // Definimos un valor por defecto para el tamaño (siendo este el tamaño mediano)
     let size = 512;
 
     // Creamos un array con las palabras del mensaje
@@ -267,7 +284,7 @@ function getSize(msg) {
                     acc = 512;
                     break;
                 case 'grande': case 'grandes':
-                    acc = 512;
+                    acc = 1024;
                     break;
             }
         }
