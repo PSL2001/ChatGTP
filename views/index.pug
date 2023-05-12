@@ -20,7 +20,6 @@ block content
         // Añadimos un contenedor para mensajes de la API
         #api-messages
         //Un input desactivado para mostrar los mensajes de esta API
-        input#api-message(disabled)
+        input#api-message(disabled, value='')
     
-    script#script(src="/javascripts/cliente.js").
-      console.log(document.getElementById('script').src)
+    script#script(src="/javascripts/cliente.js")

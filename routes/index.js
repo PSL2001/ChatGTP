@@ -100,6 +100,45 @@ router.post('/send-image', function (req, res, next) {
   });
 });
 
+/**
+ * Funcion para recibir un codigo fuente de la API de OpenAI, procesarlo y devolver la respuesta
+ * @param json request del usuario con la petición de código fuente
+ * @returns json respuesta de la API, la cual contiene el código fuente procesado o un error
+ * @throws error si no se ha podido enviar el código fuente
+ * @throws error si no se ha podido recibir la respuesta
+ * @throws error si no se ha podido procesar la respuesta
+ */
+router.post('/send-code', function (req, res, next) {
+  // Obtenemos la request del código fuente del usuario
+  console.log(req.body.msg);
+  // Pedimos una respuesta a la API de OpenAI
+  const response = new Promise((resolve, reject) => {
+    let codigo = api.createCompletion({
+      model: "text-davinci-003",
+      prompt: "Se te ha pedido que " + req.body.msg + ". Escribe solo el codigo fuente que resuelva la peticion, no añadas ni explicacion de este programa o texto antes del codigo fuente",
+      temperature: 0.9,
+      max_tokens: 150,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0.6,
+    }).then((res) => {
+      // Devolvemos la respuesta al cliente
+      resolve(res);
+    }).catch((err) => {
+      // Devolvemos el error al cliente
+      reject(err);
+    });
+  });
+
+  // Esperamos a que se resuelva la promesa y enviamos la respuesta al cliente
+  response.then((result) => {
+    console.log(result.data.choices[0].text);
+    res.json(result.data.choices[0].text);
+  }).catch((err) => {
+    console.log(err);
+    res.json({ err: err });
+  });
+});
   
 
 
