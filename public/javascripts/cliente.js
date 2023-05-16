@@ -48,7 +48,7 @@ function enviarMensaje() {
             enviarImagen(data);
         } else {
             // En otro caso, asumimos que es texto
-            enviarTexto(data);
+            enviarMensajeWatson(data);
         }
     }
 }
@@ -125,7 +125,7 @@ function enviarImagen(data) {
  * Usando la API de OpenAI, podemos enviar una cadena de texto y que nos devuelva una respuesta, tambien en forma de texto
  * @param {*} data 
  */
-async function enviarTexto(data) {
+function enviarTexto(data) {
     console.log(data);
     // Llamamos al metodo del servidor para enviar el mensaje
     // Antes comprobamos si el usuario pide un texto cualquiera o si pide un programa, aplicacion o funcion que requiera codigo para funcionar
@@ -174,6 +174,37 @@ async function enviarTexto(data) {
         });
 }
 
+/**
+ * Función que manda peticiones por texto a Watson Assistant y recibe una respuesta. Si Watson no sabe que responder, se llama a la API de OpenAI para que nos de una respuesta
+ * @param {*} data
+ * @returns Nada pero envia una peticion al servidor para que este la envie a Watson Assistant y nos devuelva una respuesta
+ */
+function enviarMensajeWatson(data) {
+    // Llamamos al metodo del servidor para enviar el mensaje
+    let res = new Promise((resolve, reject) => {
+        fetch('/send-watson', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+            .then(res => resolve(res))
+            .catch(err => reject(err));
+    });
+
+    // Esperamos a que se resuelva la promesa
+    res.then(res => res.json())
+        .then(data => {
+            console.log(data);
+            disableUserInput(false, input, button);
+        }).catch(err => {
+            // Llamamos a la funcion para mostrar el error
+            mostrarError('No se ha podido enviar el mensaje ' + err, inputError);
+            // Desbloqueamos el input y el boton
+            disableUserInput(false, input, button);
+        });
+}
 
 /**
  * Funcion para devolver una cantidad de imagenes, basandose en el input del usuario
