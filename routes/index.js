@@ -33,6 +33,7 @@ router.get('/', function (req, res, next) {
 router.post('/send-message', function (req, res, next) {
   // Obtenemos el mensaje que viene en formato JSON
   let msg = req.body.msg;
+  console.log(msg);
   // Mandamos el mensaje a la API de OpenAI
   const response = new Promise((resolve, reject) => {
     let mensaje = api.createCompletion({

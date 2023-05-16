@@ -27,7 +27,6 @@ input.addEventListener('keyup', function (event) {
         input.focus();
     }
 });
-
 // Funcion para enviar el mensaje
 function enviarMensaje() {
     //Bloqueamos el input y el boton para que no se envien mensajes mientras se procesa el anterior
@@ -127,12 +126,13 @@ function enviarImagen(data) {
  * @param {*} data 
  */
 async function enviarTexto(data) {
+    console.log(data);
     // Llamamos al metodo del servidor para enviar el mensaje
     // Antes comprobamos si el usuario pide un texto cualquiera o si pide un programa, aplicacion o funcion que requiera codigo para funcionar
     // Para ello, vamos a crear una funcion que compruebe si el usuario ha puesto un codigo, funcion o programa o sinonimos y si es asi, lo devuelve
     let isCode = isCodeRequest(data.msg);
     // Si es codigo, llamamos al metodo del servidor para enviar la peticion de codigo
-    let peticion = isCode ? '/send-code' : '/send-text';
+    let peticion = isCode ? '/send-code' : '/send-message';
     let res = new Promise((resolve, reject) => {
         fetch(peticion, {
             method: 'POST',
@@ -156,7 +156,7 @@ async function enviarTexto(data) {
                     crearCodeSnippet(data);
                 } else {
                     // Creamos el mensaje
-                    crearSpan(data, input);
+                    crearSpan("<b>IA: </b>" + data, input);
                 }
                 // Desbloqueamos el input y el boton
                 disableUserInput(false, input, button);

@@ -97,8 +97,8 @@ function limpiarInputs(input, inputError) {
  * @param {string} code
  */
 function crearCodeSnippet(code) {
-    //Quitamos el . que genera el mensaje
-    code = code.replace('.', '');
+    //Quitamos el . o : que genera el mensaje, además de los espacios en blanco
+    code = code.replace(/(\.|\:)/g, '').trim();
    // Creamos el div principal
    let div = document.createElement('div');
    // Le ponemos la clase
@@ -132,7 +132,7 @@ function crearCodeSnippet(code) {
     // Creamos el elemento code
     let codeElement = document.createElement('code');
     // Le ponemos el texto
-    codeElement.innerHTML = code;
+    codeElement.textContent = code;
     // Añadimos el elemento code al elemento pre
     pre.appendChild(codeElement);
     // Añadimos el elemento pre al div de codigo
@@ -150,3 +150,65 @@ function crearCodeSnippet(code) {
     // Ponemos el scroll abajo del todo
     document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
 }
+
+/**
+ * Funcion para cambiar la tematica de la pagina de claro a oscuro y viceversa
+ */
+function changeTheme() {
+    let icono = document.querySelector('.fa-solid');
+    let nav = document.querySelector('nav');
+    let lista = document.querySelectorAll('nav ul');
+  
+    // Comprobamos si el tema es claro u oscuro
+    if (checkTheme()) {
+      // Si es oscuro, lo cambiamos a claro
+      document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
+      nav.classList.remove('dark-theme');
+      nav.classList.add('light-theme');
+      // Cambiamos el icono del botón
+      icono.classList.replace('fa-moon', 'fa-sun');
+      // Cambiamos la temática de los elementos de la lista
+      lista.forEach((elemento) => {
+        elemento.classList.remove('dark-theme');
+        elemento.classList.add('light-theme');
+      });
+      localStorage.setItem('theme', 'light');
+    } else {
+      // Si es claro, lo cambiamos a oscuro
+      document.body.classList.remove('light-theme');
+      document.body.classList.add('dark-theme');
+      nav.classList.remove('light-theme');
+      nav.classList.add('dark-theme');
+      // Cambiamos el icono del botón
+      icono.classList.replace('fa-sun', 'fa-moon');
+      // Cambiamos la temática de los elementos de la lista
+      lista.forEach((elemento) => {
+        elemento.classList.remove('light-theme');
+        elemento.classList.add('dark-theme');
+      });
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+  
+  // Verificamos el tema almacenado en localStorage al cargar la página
+  window.addEventListener('DOMContentLoaded', () => {
+    if (checkTheme()) {
+      // Si el tema es oscuro, aplicamos los estilos correspondientes
+      document.body.classList.add('dark-theme');
+      document.querySelector('nav').classList.add('dark-theme');
+      document.querySelector('.fa-solid').classList.replace('fa-sun', 'fa-moon');
+      document.querySelectorAll('nav ul').forEach((elemento) => {
+        elemento.classList.add('dark-theme');
+      });
+    }
+  });
+
+/**
+ * Funcion para comprobar si el usuario tiene de preferencia el tema oscuro o no en localStorage
+ * @returns {boolean}
+ */
+function checkTheme() {
+    return localStorage.getItem('theme') === 'dark';
+}
+  

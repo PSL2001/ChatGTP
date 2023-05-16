@@ -14,9 +14,58 @@ body {
     background-color: #f2f2f2;
 }
 
+
+/* Para los contenidos dentro de nav */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  li {
+    float: left;
+  }
+  
+  li a {
+    display: block;
+    color: #666;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+  
+  li a:hover:not(.active) {
+    background-color: #ddd;
+  }
+  
+  li a.active {
+    color: white;
+    background-color: #04AA6D;
+  }
+
+/* Para los iconos de la barra de navegacion */
+nav i {
+    font-size: 30px;
+    color: #777;
+    margin: 0 10px;
+}
+
+/* Tema oscuro */
+.dark-theme {
+    background-color: #383838;
+    color: #f2f2f2;
+}
+
+/* Tema claro */
+.light-theme {
+    background-color: #f2f2f2;
+    color: #383838;
+}
+
 /* Para el header */
 header {
-    background-color: #fff;
+    background-color: #f2f2f2;
     padding: 20px 0;
     border-bottom: 1px solid #e3e3e3;
 }
@@ -66,6 +115,12 @@ button:hover {
     background-color: #5f5f5f;
 }
 
+/* Para el boton cuando este desactivado */
+button[disabled] {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
 /** Para las imagenes de los resultados. Las redondeamos y les damos un poco de margen */
 #results img {
     display: inline-block;
@@ -99,7 +154,6 @@ button:hover {
     margin: 20px auto;
     width: 80%;
     max-width: 600px;
-    background-color: #fff;
     padding: 20px;
     border-radius: 3px;
     box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.3);
@@ -145,7 +199,7 @@ button:hover {
 /* Clase de botones para code-display */
 .buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: left;
     margin: 10px 0;
     background-color: #312f2f;
     align-items: center;
