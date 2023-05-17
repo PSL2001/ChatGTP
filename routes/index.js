@@ -193,6 +193,10 @@ router.post('/send-watson', function (req, res, next) {
     let answer = assistant.message({
       assistantId: process.env.WATSON_ASSISTANT_ID,
       sessionId: session_id,
+      input: {
+        'message_type': 'text',
+        'text': req.body.msg
+      }
     }).then((res) => {
       // Devolvemos la respuesta al cliente
       resolve(res);

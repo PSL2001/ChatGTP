@@ -48,6 +48,62 @@ function crearImagen(images) {
 }
 
 /**
+ * Funcion para crear imagenes desde un json de la API de Watson
+ * @param {json} image
+ * @returns Nada, pero crea una imagen en el DOM basada en el json
+ */
+function crearImagenWatson(image) {
+    // Creamos un elemento img
+    let img = document.createElement('img');
+    // Le ponemos el src
+    img.src = image.source;
+    // Añadimos el titulo alternativo
+    img.alt = image.alt_text;
+    // Las imagenes pueden venir además con un titulo, por lo que lo añadimos
+    if (image.title) {
+        // Creamos un elemento h3
+        let h3 = document.createElement('h3');
+        // Le ponemos el texto
+        h3.innerHTML = image.title;
+        // Insertamos el titulo antes de la imagen
+        document.getElementById('form').before(h3);
+        // Creamos un salto de linea
+        let br = document.createElement('br');
+        // Lo añadimos al div de mensajes
+        document.getElementById('form').before(br);
+    }
+    // Añadimos la imagen al contenedor
+    document.getElementById('form').before(img);
+    // Creamos un salto de linea
+    let br = document.createElement('br');
+    // Lo añadimos al div de mensajes
+    document.getElementById('form').before(br);
+    // Ponemos el scroll abajo del todo
+    document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
+}
+
+/**
+ * Funcion para crear una etiqueta select con las opciones de la API
+ * @param {json} options json de opciones
+ * @returns Nada, pero crea un select en el DOM
+ */
+function crearOpciones(options) {
+  // Los select suelen venir con un 'title' el cual es el texto que se muestra antes de seleccionar una opcion
+  // Creamos un elemento h3
+  let h3 = document.createElement('h3');
+  // Le ponemos el texto
+  h3.innerHTML = options.title;
+  // Insertamos el titulo antes del select
+  document.getElementById('form').before(h3);
+  // Creamos el elemento select
+  let select = document.createElement('select');
+  // Le ponemos el id, basado en cuantos selects hay en el DOM
+  select.id = 'select' + document.getElementsByTagName('select').length;
+  
+
+}
+
+/**
  * Funcion para desactivar el input y el boton o activarlos
  * @param {boolean} disable 
  * @param {HTMLInputElement} input

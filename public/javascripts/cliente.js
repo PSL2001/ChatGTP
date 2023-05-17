@@ -195,9 +195,38 @@ function enviarMensajeWatson(data) {
 
     // Esperamos a que se resuelva la promesa
     res.then(res => res.json())
-        .then(data => {
-            console.log(data);
-            disableUserInput(false, input, button);
+        .then(response => {
+            console.log(response);
+            /**
+             * Ahora tenemos que comprobar si Watson ha comprendido el mensaje o no. Sabemos que no lo ha comprendido si nos devuelve el array "intents" vacio
+             * Si no lo ha comprendido, llamamos a la API de OpenAI para que nos de una respuesta en su lugar
+             * Tambien es posible que debido a que el usuario haya tardado más de 5 minutos en responder, Watson haya perdido la sesion y no pueda responder
+             * devolviendonos un error. En ese caso, llamamos a la API de OpenAI para que nos de una respuesta en su lugar
+             */
+            // Comprobamos que no nos haya llegado un error
+            if (!response.err) {
+                if (response.result.output.intents.length == 0) {
+                    // Llamamos a la funcion para enviar el mensaje a OpenAI
+                    enviarTexto(data);
+                } else {
+                    console.log(response.result.output.generic);
+                    /**
+                     * Es posible que Watson nos devuelva un array de respuestas, por lo que tenemos que recorrerlo y mostrar todas las respuestas
+                     * Este tipo de respuestas pueden ser de multiples tipos:
+                     * - text: Respuesta en forma de texto
+                     * - option: Respuesta en forma de opciones, pueden venir acompañados de un 'title' que es el la pregunta que hace Watson
+                     * - image: Respuesta en forma de imagen. Viene acompañada de un atributo 'source' que es la url de la imagen, posiblemente un 'title', 'description'
+                     *  y 'alt_text' que son el titulo, descripcion y texto alternativo de la imagen respectivamente
+                     * Afortunadamente, con la respuesta tambien nos viene el tipo de esta, por lo que podemos comprobar que tipo de respuesta es y mostrarla
+                     * Para mostrar las respuestas, vamos a crear una funcion que reciba la respuesta y el tipo de esta y la muestre
+                     */
+                    compruebaRespuestas(response.result.output.generic);
+                    disableUserInput(false, input, button);
+                }
+            } else {
+                // Llamamos a la funcion para enviar el mensaje a OpenAI
+                enviarTexto(data);
+            }
         }).catch(err => {
             // Llamamos a la funcion para mostrar el error
             mostrarError('No se ha podido enviar el mensaje ' + err, inputError);
@@ -316,3 +345,28 @@ function isCodeRequest(msg) {
     // Devolvemos true o false dependiendo de si el usuario ha escrito alguna de las palabras del array
     return palabras.some(palabra => palabrasCode.includes(palabra));
 } 
+/**
+ * Funcion que comprueba el tipo de respuesta que viene de watson y devuelve el mensaje adecuado para el usuario
+ * @param {string[]} generic
+ * @returns void
+ */
+function compruebaRespuestas(generic) {
+    // Mapeamos el array de respuestas genericas para, dependiendo del tipo de respuesta, devolver un tipo de mensaje u otro
+    generic.map(respuesta => {
+        // Comrpbamos si la respuesta es de tipo imagen
+        if (respuesta.response_type === 'image') {
+            // Si es de tipo imagen, entonces llamamos a la funcion que genera etiquetas img
+            return crearImagenWatson(respuesta);
+        }
+        // Comprobamos si la respuesta es de tipo opcion
+        if (respuesta.response_type === 'option') {
+            // Si es de tipo opction, entonces llamamos a la funcion que genera etiquetas select
+            return crearOpciones(respuesta);
+        }
+        // Comprobamos si la respuesta es de tipo text
+        if (respuesta.response_type === 'text') {
+            // Si es de tipo text, entonces llamamos a la funcion que genera etiquetas span
+            return crearSpan(respuesta);
+        }
+    });
+}
