@@ -215,7 +215,7 @@ function crearCodeSnippet(code) {
 
 
 /**
- * Funcion para cambiar la tematica de la pagina de claro a oscuro y viceversa
+ * Función para cambiar la temática de la página de claro a oscuro y viceversa
  * @returns {void}
  */
 function toggleTheme() {
@@ -232,12 +232,29 @@ function toggleTheme() {
 }
 
 /**
- * Funcion para verificar el tema actual y modificarlo de forma correspondiente
+ * Función para cambiar la temática de la página de claro a oscuro y viceversa
  * @returns {void}
  */
-function changeTheme() {
-  if (checkTheme()) {
-    // Si es oscuro, cambiamos a claro
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+  document.body.classList.toggle('dark-theme');
+  document.querySelector('nav').classList.toggle('light-theme');
+  document.querySelector('nav').classList.toggle('dark-theme');
+  document.querySelector('.fa-solid').classList.toggle('fa-sun');
+  document.querySelector('.fa-solid').classList.toggle('fa-moon');
+  document.querySelectorAll('nav ul').forEach((elemento) => {
+    elemento.classList.toggle('light-theme');
+    elemento.classList.toggle('dark-theme');
+  });
+}
+
+/**
+ * Función para establecer el tema
+ * @param {string} theme - El tema a establecer ('light' o 'dark')
+ * @returns {void}
+ */
+function setTheme(theme) {
+  if (theme === 'light') {
     document.body.classList.remove('dark-theme');
     document.querySelector('nav').classList.remove('dark-theme');
     document.querySelectorAll('nav ul').forEach((elemento) => {
@@ -245,7 +262,6 @@ function changeTheme() {
     });
     localStorage.setItem('theme', 'light');
   } else {
-    // Si es claro, cambiamos a oscuro
     document.body.classList.remove('light-theme');
     document.querySelector('nav').classList.remove('light-theme');
     document.querySelectorAll('nav ul').forEach((elemento) => {
@@ -254,22 +270,40 @@ function changeTheme() {
     localStorage.setItem('theme', 'dark');
   }
 
-  toggleTheme();
+  document.body.classList.add(`${theme}-theme`);
+  document.querySelector('nav').classList.add(`${theme}-theme`);
+  document.querySelectorAll('nav ul').forEach((elemento) => {
+    elemento.classList.add(`${theme}-theme`);
+  });
 }
+
+/**
+ * Función para verificar el tema actual y modificarlo de forma correspondiente
+ * @returns {void}
+ */
+function changeTheme() {
+  const currentTheme = checkTheme() ? 'dark' : 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  setTheme(newTheme);
+}
+
+
 
 // Verificamos el tema almacenado en localStorage al cargar la página
 window.addEventListener('DOMContentLoaded', () => {
-  if (checkTheme()) {
-    // Si el tema es oscuro, aplicamos los estilos correspondientes
-    toggleTheme();
+  const storedTheme = localStorage.getItem('theme');
+
+  if (storedTheme === 'dark') {
+    setTheme('dark');
+  } else {
+    setTheme('light');
   }
 });
 
 /**
- * Funcion para comprobar si el usuario tiene de preferencia el tema oscuro o no en localStorage
+ * Función para comprobar si el usuario tiene de preferencia el tema oscuro o no en localStorage
  * @returns {boolean} true si el tema es oscuro, false si es claro
  */
 function checkTheme() {
-  return localStorage.getItem('theme') == 'dark';
+  return localStorage.getItem('theme') === 'dark';
 }
-
