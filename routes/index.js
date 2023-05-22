@@ -97,7 +97,7 @@ router.post('/send-message', async function (req, res, next) {
     res.json(response);
   } catch (error) {
     console.log(error);
-    res.json({ error: error.message });
+    res.json({ err: error.message });
   }
 });
 
@@ -136,7 +136,7 @@ router.post('/send-image', async function (req, res, next) {
     res.json(response);
   } catch (error) {
     console.log(error);
-    res.json({ error: error.message });
+    res.json({ err: error.message });
   }
 });
 
@@ -179,7 +179,7 @@ router.post('/send-code', async function (req, res, next) {
     res.json(response);
   } catch (error) {
     console.log(error);
-    res.json({ error: error.message });
+    res.json({ err: error.message });
   }
 });
 
@@ -220,7 +220,7 @@ router.post('/send-watson', async function (req, res, next) {
     res.json(response);
   } catch (error) {
     console.log(error);
-    res.json({ error: error.message });
+    res.json({ err: error.message });
   }
 });
   
