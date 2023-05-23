@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: cliente.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: cliente.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Archivo para el cliente
+ * maneja las peticiones al servidor
+ * y la manipulacion del DOM
+ * Muestra los mensajes que vengan tanto del usuario principal como el de la API
+ */
+
+// Variables globales
+var button = document.getElementById('btnEnviar');
+var input = document.getElementById('msg');
+var inputError = document.getElementById('api-message');
+
+// Ponemos el foco en el input
+input.focus();
+
+// Ponemos listener
+button.addEventListener('click', enviarMensaje);
+// Ponemos listener al input para que al pulsar enter se envie el mensaje
+input.addEventListener('keyup', function (event) {
+    // Comprobamos que se ha pulsado enter
+    if (event.key === 'Enter' || event.key === 'NumpadEnter') {
+        // Cancelamos el evento por defecto
+        event.preventDefault();
+        // Enviamos el mensaje
+        enviarMensaje();
+        // Ponemos el foco en el input
+        input.focus();
+    }
+});
+
+/**
+ * Funcion para mostrar un mensaje en el chat y enviar una peticion al servidor
+ * @param {string} message, el mensaje que se va a mostrar en el chat, si no se especifica, se coge del input
+ * @returns void
+ */
+function enviarMensaje(message) {
+    console.log(message);
+  
+    // Bloqueamos el input y el botón para evitar el envío de mensajes mientras se procesa el anterior
+    disableUserInput(true, input, button);
+  
+    // Obtener el mensaje, puede ser proporcionado como argumento o extraído del input
+    if (typeof message !== 'string') {
+      // Si no se proporcionó un mensaje específico, obtenemos el valor del input
+      message = input.value;
+    }
+  
+    // Verificar que el mensaje no esté vacío
+    if (message.trim() !== '') {
+      // Limpiar el input y el mensaje de error
+      limpiarInputs(input, inputError);
+  
+      // Crear el elemento para mostrar el mensaje del usuario
+      crearSpan('&lt;b>Humano: &lt;/b>' + message);
+  
+      // Crear el objeto para enviar al servidor
+      const data = {
+        msg: message
+      };
+  
+      // Verificar si el mensaje contiene palabras como "imagen", "foto", "dibujo", etc.
+      if (message.includes('imagen') || message.includes('foto') || message.includes('dibujo') || message.includes('dibujar')) {
+        enviarImagen(data);
+      } else {
+        // En caso contrario, asumimos que es texto
+        enviarMensajeWatson(data);
+      }
+    }
+  }
+  
+/**
+    * Funcion para enviar una imagen 
+    * Antes de poder mandar la peticion a la API de OpenAI, necesitamos 3 parametros:
+    * 1. La peticion de imagen (que tenemos en la variable request)
+    * 2. La cantidad de imagenes que queremos que nos devuelva la API (el cual es opcional, pero el usuario podría pedir mas de 1 que es el valor por defecto)
+    *    La cantidad maxima de imagenes que podemos pedir es 10.
+    * 3. El tamaño de la imagen que queremos. Este campo tambien es opcional, pero dependiendo de como pida la imagen el usuario. puede ser pequeño (256), mediano (512)
+    *  o grande (1024). Por defecto, la API devuelve imagenes de tamaño grande.
+    * 
+    * Toda esta informacion debería estar en la request del usuario, pero por si acaso, vamos a poner valores por defecto.
+    * Primero comprobamos en data.msg si el usuario ha pedido mas de una imagen
+    * Nos puede pedir mas de una imagen si ha puesto algo como "quiero 3 imagenes de un perro". Esto tambien se aplica para la palabra "tres" y asi con todos los numeros
+    * hasta 10. Por eso, vamos a comprobar si el usuario ha puesto un numero del 1 al 10
+    * Para ello, vamos a crear una funcion que compruebe si el usuario ha puesto un numero
+    * y si es asi, lo devuelve
+    * 
+    * @param {*} data
+    * @returns {void} Nada pero envia una peticion al servidor para que este la envie a la API de OpenAI y nos devuelva una serie de imagenes
+*/
+function enviarImagen(data) {
+    const num = getNumber(data.msg);
+    const size = getSize(data.msg);
+  
+    const request = {
+      prompt: data.msg,
+      n: num !== undefined ? parseInt(num) : 1,
+      size: size !== undefined ? `${size}x${size}` : '512x512'
+    };
+  
+    console.log(request);
+  
+    fetch('/send-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(request),
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+  
+        if (data) {
+          crearImagen(data, input);
+          disableUserInput(false, input, button);
+        } else {
+          mostrarError('No se ha podido procesar la respuesta', inputError);
+          disableUserInput(false, input, button);
+        }
+      })
+      .catch(err => {
+        mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
+        disableUserInput(false, input, button);
+      });
+  }
+  
+
+/**
+ * Funcion para enviar una cadena de texto
+ * Usando la API de OpenAI, podemos enviar una cadena de texto y que nos devuelva una respuesta, tambien en forma de texto
+ * @param {*} data 
+ */
+function enviarTexto(data) {
+    console.log(data);
+  
+    const isCode = isCodeRequest(data.msg);
+    const requestURL = isCode ? '/send-code' : '/send-message';
+  
+    fetch(requestURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+  
+        if (data) {
+          if (isCode) {
+            crearCodeSnippet(data);
+          } else {
+            crearSpan("&lt;b>IA: &lt;/b>" + data, input);
+          }
+          disableUserInput(false, input, button);
+        } else {
+          mostrarError('No se ha podido procesar la respuesta', inputError);
+          disableUserInput(false, input, button);
+        }
+      })
+      .catch(err => {
+        mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
+        disableUserInput(false, input, button);
+      });
+  }
+  
+/**
+ * Función que manda peticiones por texto a Watson Assistant y recibe una respuesta. Si Watson no sabe que responder, se llama a la API de OpenAI para que nos de una respuesta
+ * @param {*} data
+ * @returns Nada pero envia una peticion al servidor para que este la envie a Watson Assistant y nos devuelva una respuesta
+ */
+function enviarMensajeWatson(data) {
+    fetch('/send-watson', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    })
+      .then(res => res.json())
+      .then(response => {
+        console.log(response);
+  
+        if (!response.err) {
+          if (response.result.output.intents.length === 0) {
+            enviarTexto(data);
+          } else {
+            console.log(response.result.output.generic);
+            compruebaRespuestas(response.result.output.generic);
+            disableUserInput(false, input, button);
+          }
+        } else {
+          enviarTexto(data);
+        }
+      })
+      .catch(err => {
+        mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
+        disableUserInput(false, input, button);
+      });
+  }  
+
+/**
+ * Funcion para devolver una cantidad de imagenes, basandose en el input del usuario
+ * @param {string} msg 
+ * @returns un numero del 1 al 10
+ */
+function getNumber(msg) {
+    const numeros = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    const palabrasNum = ['un', 'una', 'el', 'la'];
+    const numerosTexto = ['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+  
+    const palabras = msg.split(' ');
+  
+    for (let palabra of palabras) {
+      palabra = palabra.toLowerCase();
+  
+      if (numeros.includes(palabra)) {
+        return parseInt(palabra);
+      }
+  
+      if (numerosTexto.includes(palabra)) {
+        return numerosTexto.indexOf(palabra) + 1;
+      }
+  
+      if (palabrasNum.includes(palabra)) {
+        return 1;
+      }
+    }
+  
+    return Math.floor(Math.random() * 9) + 2;
+  }
+  
+
+/**
+ * Funcion para comprobar si el usuario ha escrito un tamaño de imagen concreto
+ * @param {string} msg 
+ * @returns un tamaño de imagen (256, 512 o 1024) dependiendo de lo que haya escrito el usuario o un valor por defecto (512) si no ha escrito nada
+ */
+function getSize(msg) {
+    // Definimos un valor por defecto para el tamaño (siendo este el tamaño mediano)
+    let size = 512;
+
+    // Convertimos el mensaje a minúsculas para evitar problemas de coincidencia de palabras
+    const lowerMsg = msg.toLowerCase();
+
+    // Creamos un objeto que mapee las palabras clave de tamaño a su correspondiente valor
+    const sizeMappings = {
+        pequeño: 256,
+        mediano: 512,
+        medio: 512,
+        grande: 1024,
+        pequeña: 256,
+        mediana: 512,
+        pequeñas: 256,
+        medianas: 512,
+        grandes: 1024,
+        pequeños: 256,
+        medianos: 512
+    };
+
+    // Buscamos en el mensaje las palabras clave de tamaño y actualizamos el tamaño si se encuentra una coincidencia
+    Object.keys(sizeMappings).forEach(keyword => {
+        if (lowerMsg.includes(keyword)) {
+            size = sizeMappings[keyword];
+        }
+    });
+
+    // Devolvemos el tamaño
+    return size;
+}
+
+
+/**
+ * Funcion que comprueba si el usuario esta pidiendo un programa o funcion que requiera un snippet de codigo
+ * @param {string} msg
+ */
+function isCodeRequest(msg) {
+    // Convertimos el mensaje a minúsculas para evitar problemas de coincidencia de palabras
+    const lowerMsg = msg.toLowerCase();
+
+    // Creamos un conjunto (Set) con las palabras que pueden indicar que el usuario está pidiendo un snippet de código
+    const codeKeywords = new Set(['codigo', 'code', 'snippet', 'programa', 'programas', 'funcion', 'funciones']);
+
+    // Comprobamos si alguna de las palabras del conjunto está incluida en el mensaje en minúsculas
+    return Array.from(codeKeywords).some(keyword => lowerMsg.includes(keyword));
+}
+/**
+ * Funcion que comprueba el tipo de respuesta que viene de watson y devuelve el mensaje adecuado para el usuario
+ * @param {string[]} generic
+ * @returns void
+ */
+function compruebaRespuestas(generic) {
+    // Recorremos el array de respuestas genericas
+    generic.forEach(respuesta => {
+        // Comprobamos el tipo de respuesta
+        if (respuesta.response_type === 'image') {
+            // Si es de tipo imagen, llamamos a la función que genera etiquetas img
+            crearImagenWatson(respuesta);
+        } else if (respuesta.response_type === 'option') {
+            // Si es de tipo opción, llamamos a la función que genera etiquetas select
+            crearOpciones(respuesta);
+        } else if (respuesta.response_type === 'text') {
+            // Si es de tipo texto, llamamos a la función que genera etiquetas span
+            crearSpan("&lt;b>IA: &lt;/b>" + respuesta.text);
+        } else {
+            // Si el tipo de respuesta no coincide con ninguno de los casos anteriores, mostramos un mensaje de error o realizamos alguna acción predeterminada
+            console.log("Tipo de respuesta no reconocido:", respuesta.response_type);
+        }
+    });
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#changeTheme">changeTheme</a></li><li><a href="global.html#checkTheme">checkTheme</a></li><li><a href="global.html#compruebaRespuestas">compruebaRespuestas</a></li><li><a href="global.html#crearCodeSnippet">crearCodeSnippet</a></li><li><a href="global.html#crearElementosImagen">crearElementosImagen</a></li><li><a href="global.html#crearImagen">crearImagen</a></li><li><a href="global.html#crearImagenWatson">crearImagenWatson</a></li><li><a href="global.html#crearOpciones">crearOpciones</a></li><li><a href="global.html#crearSpan">crearSpan</a></li><li><a href="global.html#disableUserInput">disableUserInput</a></li><li><a href="global.html#enviarImagen">enviarImagen</a></li><li><a href="global.html#enviarMensaje">enviarMensaje</a></li><li><a href="global.html#enviarMensajeWatson">enviarMensajeWatson</a></li><li><a href="global.html#enviarTexto">enviarTexto</a></li><li><a href="global.html#getNumber">getNumber</a></li><li><a href="global.html#getSize">getSize</a></li><li><a href="global.html#isCodeRequest">isCodeRequest</a></li><li><a href="global.html#limpiarInputs">limpiarInputs</a></li><li><a href="global.html#mostrarError">mostrarError</a></li><li><a href="global.html#setTheme">setTheme</a></li><li><a href="global.html#toggleTheme">toggleTheme</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue May 23 2023 09:26:19 GMT+0200 (hora de verano de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

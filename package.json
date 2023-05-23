@@ -16,5 +16,8 @@
     "natural": "^6.3.0",
     "openai": "^3.2.1",
     "pug": "^3.0.2"
+  },
+  "devDependencies": {
+    "jsdoc": "^4.0.2"
   }
 }
