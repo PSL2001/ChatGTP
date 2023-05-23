@@ -13,11 +13,16 @@ block content
       form(action='', onsubmit='return false;', method='POST')
         //Un span para los mensajes del usuario y la API. Solo queremos enseñar esto si tenemos un mensaje
         //span#user-message
-        // El input para el mensaje
-        input#msg(autocomplete='off')
-        // El boton para enviar el mensaje
-        button#btnEnviar Enviar
-        // Añadimos un contenedor para mensajes de la API
+        // Un contenedor para el input y los botones
+        #container-inputs
+          // El input para el mensaje
+          input#msg(autocomplete='off')
+          // El boton para enviar el mensaje
+          button#btnEnviar
+            i.fa-solid.fa-paper-plane
+          button#btnVoice 
+            i.fa-solid.fa-microphone
+          // Añadimos un contenedor para mensajes de la API
         #api-messages
         //Un input desactivado para mostrar los mensajes de esta API
         input#api-message(disabled, value='')

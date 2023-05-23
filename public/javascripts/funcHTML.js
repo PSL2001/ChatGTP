@@ -292,3 +292,19 @@ window.addEventListener('DOMContentLoaded', () => {
 function checkTheme() {
   return localStorage.getItem('theme') === 'dark';
 }
+
+/**
+ * Funcion para cambiar el icono del microfono segun su clase
+ * @param {HTMLStyleElement} iconMicElement
+ * @returns {void}
+ */
+function changeMicStyle(iconMicElement) {
+  console.log(iconMicElement.classList);
+  if (iconMicElement.classList.contains('fa-microphone')) {
+    iconMicElement.classList.remove('fa-microphone');
+    iconMicElement.classList.add('fa-stop');
+  } else {
+    iconMicElement.classList.remove('fa-stop');
+    iconMicElement.classList.add('fa-microphone');
+  }
+}
