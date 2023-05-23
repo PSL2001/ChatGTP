@@ -3,6 +3,11 @@
 require('dotenv').config({ silent: true });
 var express = require('express');
 var router = express.Router();
+const axios = require('axios');
+const cors = require('cors');
+
+router.use(cors());
+router.use(cors());
 
 // Importamos el modulo de ChatGTP
 const { Configuration, OpenAIApi } = require("openai");
