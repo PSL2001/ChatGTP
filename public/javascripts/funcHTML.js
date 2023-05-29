@@ -13,6 +13,18 @@ function crearSpan(msg) {
   span.innerHTML = msg;
   // Le asignamos el id para los estilos específicos
   span.id = 'user-message';
+  // Creamos un boton, el cual tiene un icono de escucha y un evento para reproducir el mensaje por audio
+  const button = document.createElement('button');
+  button.innerHTML = '<i class="fas fa-volume-up"></i>'
+  // Añadimos una clase al botón para los estilos específicos
+  button.classList.add('btnAudio');
+  button.addEventListener('click', textToSpeech);
+  // Añadimos un espacio de separación
+  const space = document.createTextNode(' ');
+  // Lo añadimos entre el texto y el botón
+  span.appendChild(space);
+  // Añadimos el botón al span
+  span.appendChild(button);
   // Lo añadimos al div de mensajes
   document.getElementById('form').before(span);
   // Creamos un salto de línea
@@ -23,6 +35,43 @@ function crearSpan(msg) {
   document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
 }
 
+/**
+ * Funcion para cojer el texto del span y reproducirlo por audio
+ * @param {Event} event Evento del click
+ * @returns {void} reproduce el texto del span por audio
+ */
+function textToSpeech(event) {
+  // Comprobamos si el navegador soporta la API de speechSynthesis
+  if (!checkSpeechSynthesisSupport()) {
+    // Si no la soporta, mostramos un mensaje de error
+    alert('Tu navegador no soporta la API de speechSynthesis');
+    return;
+  }
+  // Cojemos el texto del span
+  const text = devolverTexto(event.target.parentElement);
+  // Creamos un objeto de speechSynthesis
+  const speech = new SpeechSynthesisUtterance();
+  // Le asignamos el texto
+  speech.text = text;
+  // Lo reproducimos
+  window.speechSynthesis.speak(speech);
+}
+
+/**
+ * Funcion para devolver el texto para el audio
+ * @param {HTMLElement} element Elemento del DOM
+ * @returns {string} Texto del elemento
+ */
+function devolverTexto(element) {
+  // Comprobamos si el elemento ya lleva texto
+  if (element.innerText) {
+    // Si lo lleva, lo devolvemos
+    return element.innerText;
+  } else {
+    // Si no, llamamos a la función con el padre
+    return devolverTexto(element.parentElement);
+  }
+}
 
 /**
  * Funcion para crear una etiqueta img con la imagen
@@ -213,26 +262,6 @@ function crearCodeSnippet(code) {
 
   document.getElementById('form').scrollTop = document.getElementById('form').scrollHeight;
 }
-
-
-/**
- * Función para cambiar la temática de la página de claro a oscuro y viceversa
- * @returns {void}
- */
-function toggleTheme() {
-  document.body.classList.toggle('light-theme');
-  document.body.classList.toggle('dark-theme');
-  document.querySelector('nav').classList.toggle('light-theme');
-  document.querySelector('nav').classList.toggle('dark-theme');
-  document.querySelector('.fa-solid').classList.toggle('fa-sun');
-  document.querySelector('.fa-solid').classList.toggle('fa-moon');
-  document.querySelectorAll('nav ul').forEach((elemento) => {
-    elemento.classList.toggle('light-theme');
-    elemento.classList.toggle('dark-theme');
-  });
-}
-
-
 /**
  * Función para establecer el tema
  * @param {string} theme - El tema a establecer ('light' o 'dark')
@@ -245,6 +274,7 @@ function setTheme(theme) {
     document.querySelectorAll('nav ul').forEach((elemento) => {
       elemento.classList.remove('dark-theme');
     });
+    document.querySelector('.fa-moon').classList.replace('fa-moon', 'fa-sun');
     localStorage.setItem('theme', 'light');
   } else {
     document.body.classList.remove('light-theme');
@@ -252,7 +282,9 @@ function setTheme(theme) {
     document.querySelectorAll('nav ul').forEach((elemento) => {
       elemento.classList.remove('light-theme');
     });
+    document.querySelector('.fa-sun').classList.replace('fa-sun', 'fa-moon');
     localStorage.setItem('theme', 'dark');
+
   }
 
   document.body.classList.add(`${theme}-theme`);
@@ -307,4 +339,61 @@ function changeMicStyle(iconMicElement) {
     iconMicElement.classList.remove('fa-stop');
     iconMicElement.classList.add('fa-microphone');
   }
+}
+
+/**
+ * Funcion la cual comprueba si tenemos permisos para usar el microfono
+ * Si los tenemos, se llama a la funcion startVoiceRecognition
+ * Si no, simplemente mostramos una alerta al usuario para que sepa que debe dar permisos para poder usar voice recognition
+ * @returns void
+ */
+function checkMicPermissions() {
+  // Comprobamos si el navegador soporta el reconocimiento de voz
+  if (!checkVoiceRecognitionSupport()) {
+    // Si no lo soporta, mostramos una alerta
+    alert('Tu navegador no soporta el reconocimiento de voz');
+    // Salimos de la funcion
+    return;
+  }
+  // Primero comprobamos si el usuario ya ha dado permisos de microfono
+  navigator.permissions.query({ name: 'microphone' }).then(function (result) {
+    // Si el usuario ya ha dado permisos, llamamos a la funcion startVoiceRecognition
+    if (result.state === 'granted') {
+      startVoiceRecognition();
+    }
+    //Si no le ha dado permisos entonces o no hemos preguntado aun o no nos ha dado permisos
+    else if (result.state === 'prompt') {
+      // Le preguntamos al usuario si quiere dar permisos
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function () {
+        // Si nos da permisos, llamamos a la funcion startVoiceRecognition
+        startVoiceRecognition();
+      }).catch(function (error) {
+        // Si no nos da permisos, mostramos una alerta al usuario
+        alert('Ha habido un error al intentar activar el microfono para voice recognition');
+        console.error(error);
+      });
+    }
+    // Si el usuario ya ha denegado los permisos, mostramos una alerta al usuario
+    else if (result.state === 'denied') {
+      alert('No se puede usar el microfono sin permisos');
+    }
+  });
+}
+
+/**
+ * Funcion para comprobar si el navegador soporta voice recognition o no
+ * @returns {boolean} true si soporta voice recognition, false si no
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#browser_compatibility
+ */
+function checkVoiceRecognitionSupport() {
+  return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+}
+
+/**
+ * Funcion que comprueba si el navegador soporta speech synthesis o no
+ * @returns {boolean} true si soporta speech synthesis, false si no
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis#browser_compatibility
+ */
+function checkSpeechSynthesisSupport() {
+  return 'speechSynthesis' in window || 'SpeechSynthesisUtterance' in window;
 }

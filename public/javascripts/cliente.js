@@ -12,12 +12,6 @@ const inputError = document.getElementById('api-message');
 const btnVoice = document.getElementById('btnVoice');
 // Variable para guardar el icono del boton de voz
 const btnVoiceIcon = btnVoice.querySelector('i');
-// Variable para guardar si esta grabando el microfono o no
-let isRecording = false;
-let socket;
-let recorder;
-// Para manejar transcripciones
-let texts = {};
 
 // Ponemos el foco en el input
 input.focus();
@@ -39,142 +33,48 @@ input.addEventListener('keyup', function (event) {
 // Ponemos listener al boton de voz
 btnVoice.addEventListener('click', checkMicPermissions);
 
-
-/**
- * Funcion la cual comprueba si tenemos permisos para usar el microfono
- * Si los tenemos, se llama a la funcion startVoiceRecognition
- * Si no, simplemente mostramos una alerta al usuario para que sepa que debe dar permisos para poder usar voice recognition
- * @returns void
- */
-function checkMicPermissions() {
-  // Primero comprobamos si el usuario ya ha dado permisos de microfono
-  navigator.permissions.query({ name: 'microphone' }).then(function (result) {
-    // Si el usuario ya ha dado permisos, llamamos a la funcion startVoiceRecognition
-    if (result.state === 'granted') {
-      startVoiceRecognition();
-    }
-    //Si no le ha dado permisos entonces o no hemos preguntado aun o no nos ha dado permisos
-    else if (result.state === 'prompt') {
-      // Le preguntamos al usuario si quiere dar permisos
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(function () {
-        // Si nos da permisos, llamamos a la funcion startVoiceRecognition
-        startVoiceRecognition();
-      }).catch(function (error) {
-        // Si no nos da permisos, mostramos una alerta al usuario
-        alert('Ha habido un error al intentar activar el microfono para voice recognition');
-        console.error(error);
-      });
-    }
-    // Si el usuario ya ha denegado los permisos, mostramos una alerta al usuario
-    else if (result.state === 'denied') {
-      alert('No se puede usar el microfono sin permisos');
-    }
-  });
-}
-
 /**
  * Funcion para iniciar el reconocimiento de voz
  * @returns void
  */
 function startVoiceRecognition() {
   // Llamamos a la funcion para cambiar el icono del boton
-  changeMicStyle(btnVoiceIcon)
-  // Cambiamos el valor de la variable isRecording
-  isRecording = !isRecording;
-  if (!isRecording) {
-    if (recorder) {
-      recorder.stop();
-      recorder = null;
-    }
-    if (socket) {
-      socket.close();
-      socket = null;
-    }
-
-  } else {
-    fetch('/token').then(function (response) {
-      return response.json();
-    }).then(function (token) {
-      socket = new WebSocket("wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=" + token.token);
-      socket.addEventListener('open', comenzarGrabacion);
-      socket.addEventListener('message', recibirMensaje);
-      socket.addEventListener('close', cerrarConexion);
-      socket.addEventListener('error', errorConexion);
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
+  changeMicStyle(btnVoiceIcon);
+  // Creamos un nuevo objeto de reconocimiento de voz
+  let recognition = new window.webkitSpeechRecognition() || window.SpeechRecognition();
+  // Creamos dos listeners para cuando el usuario empiece a hablar y cuando termine de hablar
+  recognition.addEventListener('start', startRecognition);
+  recognition.addEventListener('result', endRecognition);
+  // Iniciamos el reconocimiento de voz
+  recognition.start();
 }
 
 /**
- * Funcion para cerrar la conexion de voz
+ * Funcion para comenzar el reconocimiento de voz
  * @returns void
  */
-function cerrarConexion(event) {
-  console.log(event);
-  socket = null;
+function startRecognition() {
+  // Cambiamos el texto del input para que el usuario sepa que puede hablar
+  input.value = 'Habla ahora...';
+  // Desactivamos el input y el boton para evitar que el usuario pueda enviar mensajes mientras habla
+  disableUserInput(true, input, button);
 }
 
 /**
- * Funcion para manejar los errores de la conexion de voz
+ * Funcion para terminar el reconocimiento de voz y mostrar el mensaje en el input
  * @returns void
  */
-function errorConexion(event) {
-  console.error(event);
-  socket = null;
-}
-
-/**
- * Funcion para comenzar la grabacion de voz
- * @returns void
- */
-function comenzarGrabacion() {
-  navigator.mediaDevices.getUserMedia({ audio: true})
-    .then((stream) => {
-      recorder = new RecordRTC(stream, {
-        type: 'audio',
-        mimeType: 'audio/webm;codecs=pcm', // el endpoint requiere este codec 16bit pcm
-        recorderType: StereoAudioRecorder,
-        timeSlice: 250, // enviar datos cada 250ms
-        desiredSampRate: 16000, // 16khz
-        numberOfAudioChannels: 1, // mono, real time solo requiere 1 canal
-        bufferSize: 4096, // 4k buffer
-        audioBitsPerSecond: 128000, // 128k bps
-        ondataavailable: (blob) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64data = reader.result;
-
-            //El data de audio se envia como base64 string
-            if (socket) {
-              socket.send(JSON.stringify({ audio_data: base64data.split('base64,')[1] }));
-            }
-          };
-          reader.readAsDataURL(blob);
-        },
-      });
-      recorder.startRecording();
-    }).catch((err) => {
-      console.error(err);
-    });
-}
-
-/**
- * Funcion para recibir mensajes de voz
- * @returns void
- */
-function recibirMensaje(message) {
-  let msg;
-  const res = JSON.parse(message.data);
-  texts[res.audio_start] = res.text;
-  const keys = Object.keys(texts);
-  keys.sort((a, b) => a - b);
-  for (const key of keys) {
-    if(texts[key]) {
-      msg += ` ${texts[key]}`;
-    }
-  }
-  input.value = msg;
+function endRecognition(event) {
+  //Limpiamos el input y el mensaje de error
+  limpiarInputs(input, inputError);
+  // Activamos el input y el boton
+  disableUserInput(false, input, button);
+  // Cambiamos el icono del boton
+  changeMicStyle(btnVoiceIcon);
+  // Obtenemos el mensaje
+  const message = event.results[0][0].transcript;
+  // Mostramos el mensaje en el input
+  input.value = message;
 }
 
 /**

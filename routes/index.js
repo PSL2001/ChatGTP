@@ -3,11 +3,6 @@
 require('dotenv').config({ silent: true });
 var express = require('express');
 var router = express.Router();
-const axios = require('axios');
-const cors = require('cors');
-
-router.use(cors());
-router.use(cors());
 
 // Importamos el modulo de ChatGTP
 const { Configuration, OpenAIApi } = require("openai");
@@ -70,7 +65,7 @@ router.get('/', function (req, res, next) {
  */
 async function sendMessage(msg) {
   try {
-    const prompt = "La siguiente conversacion es entre un humano y un asistente de IA. Este asistente es muy inteligente, creativo, dispuesto a ayudar y muy amable.\nHumano: Hola, ¿quién eres?\nIA: Soy una IA creada por OpenAI. ¿Cómo puedo ayudarte?\nHumano: " + msg + "\nIA:";
+    const prompt = "La siguiente conversacion es entre un humano y un asistente de IA el cual comparte tecnologías de Watson Assistant y OpenAI GPT-3. Este asistente es muy inteligente, creativo, dispuesto a ayudar y muy amable.\nHumano: Hola, ¿quién eres?\nIA: Soy una IA creada por OpenAI en combinacion con Watson Assistant. ¿Cómo puedo ayudarte?\nHumano: " + msg + "\nIA:";
 
     const response = await api.createCompletion({
       model: "text-davinci-003",
@@ -228,8 +223,6 @@ router.post('/send-watson', async function (req, res, next) {
     res.json({ err: error.message });
   }
 });
-  
-
 
 
 module.exports = router;
