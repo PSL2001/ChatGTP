@@ -57,7 +57,7 @@ function startRecognition() {
   // Cambiamos el texto del input para que el usuario sepa que puede hablar
   input.value = 'Habla ahora...';
   // Desactivamos el input y el boton para evitar que el usuario pueda enviar mensajes mientras habla
-  disableUserInput(true, input, button);
+  disableUserInput(true, input, button, btnVoice);
 }
 
 /**
@@ -68,7 +68,7 @@ function endRecognition(event) {
   //Limpiamos el input y el mensaje de error
   limpiarInputs(input, inputError);
   // Activamos el input y el boton
-  disableUserInput(false, input, button);
+  disableUserInput(false, input, button, btnVoice);
   // Cambiamos el icono del boton
   changeMicStyle(btnVoiceIcon);
   // Obtenemos el mensaje
@@ -86,7 +86,7 @@ function enviarMensaje(message) {
   console.log(message);
 
   // Bloqueamos el input y el botón para evitar el envío de mensajes mientras se procesa el anterior
-  disableUserInput(true, input, button);
+  disableUserInput(true, input, button, btnVoice);
 
   // Obtener el mensaje, puede ser proporcionado como argumento o extraído del input
   if (typeof message !== 'string') {
@@ -161,15 +161,15 @@ function enviarImagen(data) {
 
       if (data) {
         crearImagen(data, input);
-        disableUserInput(false, input, button);
+        disableUserInput(false, input, button, btnVoice);
       } else {
         mostrarError('No se ha podido procesar la respuesta', inputError);
-        disableUserInput(false, input, button);
+        disableUserInput(false, input, button, btnVoice);
       }
     })
     .catch(err => {
       mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
-      disableUserInput(false, input, button);
+      disableUserInput(false, input, button, btnVoice);
     });
 }
 
@@ -202,22 +202,22 @@ function enviarTexto(data) {
         } else {
           crearSpan("<b>IA: </b>" + data, input);
         }
-        disableUserInput(false, input, button);
+        disableUserInput(false, input, button, btnVoice);
       } else {
         mostrarError('No se ha podido procesar la respuesta', inputError);
-        disableUserInput(false, input, button);
+        disableUserInput(false, input, button, btnVoice);
       }
     })
     .catch(err => {
       mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
-      disableUserInput(false, input, button);
+      disableUserInput(false, input, button, btnVoice);
     });
 }
 
 /**
  * Función que manda peticiones por texto a Watson Assistant y recibe una respuesta. Si Watson no sabe que responder, se llama a la API de OpenAI para que nos de una respuesta
  * @param {*} data
- * @returns Nada pero envia una peticion al servidor para que este la envie a Watson Assistant y nos devuelva una respuesta
+ * @returns {void} Nada pero envia una peticion al servidor para que este la envie a Watson Assistant y nos devuelva una respuesta
  */
 function enviarMensajeWatson(data) {
   fetch('/send-watson', {
@@ -237,7 +237,7 @@ function enviarMensajeWatson(data) {
         } else {
           console.log(response.result.output.generic);
           compruebaRespuestas(response.result.output.generic);
-          disableUserInput(false, input, button);
+          disableUserInput(false, input, button, btnVoice);
         }
       } else {
         enviarTexto(data);
@@ -245,7 +245,7 @@ function enviarMensajeWatson(data) {
     })
     .catch(err => {
       mostrarError(`No se ha podido enviar el mensaje ${err}`, inputError);
-      disableUserInput(false, input, button);
+      disableUserInput(false, input, button, btnVoice);
     });
 }
 

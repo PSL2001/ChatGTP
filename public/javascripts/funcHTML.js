@@ -192,13 +192,15 @@ function crearOpciones(options) {
 
 /**
  * Funcion para desactivar el input y el boton o activarlos
- * @param {boolean} shouldDisable
- * @param {HTMLInputElement} inputElement
- * @param {HTMLButtonElement} buttonElement
+ * @param {boolean} shouldDisable Si se debe desactivar o no
+ * @param {HTMLInputElement} inputElement Elemento del input de texto
+ * @param {HTMLButtonElement} buttonElement Elemento del boton de enviar
+ * @param {HTMLButtonElement} btnVoiceElement Elemento del boton de voz
  */
-function disableUserInput(shouldDisable, inputElement, buttonElement) {
+function disableUserInput(shouldDisable, inputElement, buttonElement, btnVoiceElement) {
   inputElement.disabled = shouldDisable;
   buttonElement.disabled = shouldDisable;
+  btnVoiceElement.disabled = shouldDisable;
 }
 
 /**
